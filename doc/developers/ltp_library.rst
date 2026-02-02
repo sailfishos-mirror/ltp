@@ -15,6 +15,35 @@ for :doc:`writing tests <../developers/writing_tests>`
 #. Do not add new API functions to the old API. Add new functions to
    ``tst_.[ch]`` files.
 
+Library naming and scope
+------------------------
+
+To keep the library API easy to navigate and to make layering explicit, LTP
+library components follow these naming rules:
+
+- **tst_**: Core LTP library API (located in :master:`lib/`).
+
+  - Stable, widely used interfaces intended for general consumption by tests.
+  - New public APIs should normally live here (in ``tst_*.h`` / ``tst_*.c``).
+
+- **tse_**: Non-core / extended library code (located in :master:`libs/`).
+
+  - Optional or specialized helpers that are not part of the core API.
+  - May have narrower scope or fewer stability guarantees than ``tst_``.
+  - Can be promoted to ``tst_`` later if it becomes broadly useful and stable.
+
+- **tso_**: Legacy / old library code.
+
+  - Kept for backward compatibility.
+  - No new features should be added; only minimal fixes are acceptable
+    (e.g. build fixes, correctness fixes, security fixes).
+  - New code should not depend on ``tso_`` unless strictly necessary.
+
+.. note::
+
+   Prefer adding new code to ``tst_`` or ``tse_``; avoid introducing new ``tso_`` components.
+   When adding a new public interface, document where it belongs (``tst_`` vs ``tse_``) and why.
+
 Shell API
 ---------
 
