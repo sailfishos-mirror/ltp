@@ -7,16 +7,6 @@ This is a comprehensive list of tasks where LTP maintainers are currently
 working on. Priorities might change over time, but these are the most important
 points which are currently being achieved.
 
-Fade out old tests runner
--------------------------
-
-:master:`runltp` script is old and unmaintaned. We are slowly shifting to
-`kirk <https://github.com/linux-test-project/kirk>`_, that will be our official
-tests runner in the future.
-
-Kirk provides support for remote testing via Qemu, SSH, LTX, parallel
-execution and much more.
-
 Test new syscalls
 -----------------
 

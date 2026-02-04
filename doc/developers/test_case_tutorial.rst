@@ -205,9 +205,9 @@ please do:
 
 This should build the test and then run it. However, even though the test is
 in :master:`testcases/kernel/syscalls` directory it won't be automatically ran
-as part of the syscalls test group (e.g. not run via ``kirk -r math`` or
-``./runltp -f syscalls``). For this we need to add it to the runtest file. So
-open :master:`runtest/syscalls` and add the lines starting with a ``+``.
+as part of the syscalls test group (e.g. not run via ``kirk -r math``.  For
+this we need to add it to the runtest file. So open :master:`runtest/syscalls`
+and add the lines starting with a ``+``.
 
 .. code-block::
 

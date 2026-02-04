@@ -245,4 +245,4 @@ things and how to format them.
 
 So far this proof of concept generates a metadata file. I guess that we need
 actual consumers which will help to settle things down, I will try to look into
-making use of this in the runltp-ng at least as a reference implementation.
+making use of this in the kirk at least as a reference implementation.

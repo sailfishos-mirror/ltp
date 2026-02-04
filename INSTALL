@@ -104,10 +104,10 @@ Quick Start
 	$ cd ltp
 	$ ./configure
 	$ make all
-	# make install
-	$ /opt/ltp/runltp
+	$ sudo make install
 
 *NOTE:
+- For running tests use kirk [1].
 - LTP assumes the existence of the nobody, bin, and daemon users and their
 groups.  If these IDs do not exist, certain tests will fail. The respective
 user and group IDs should be the same, i.e. if `nobody's' user ID is 99, then
@@ -116,6 +116,8 @@ its group ID should also be 99. The names of the groups are irrelevant.
 "Using autoconf" above and specify the appropriate path via --prefix.
 DESTDIR= is also honored for install and will install into $DESTDIR/$prefix,
 if you want to install into a chroot or a rootfs for instance.
+
+[1] https://github.com/linux-test-project/kirk
 
 Detailed Installation
 ---------------------
