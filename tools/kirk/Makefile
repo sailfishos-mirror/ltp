@@ -17,8 +17,6 @@ ifneq ($(wildcard $(abs_srcdir)/kirk-src/libkirk/*.py),)
 	install -m 00644 $(abs_srcdir)/kirk-src/libkirk/*.py $(BASE_DIR)/libkirk
 	install -m 00644 $(abs_srcdir)/kirk-src/libkirk/channels/*.py $(BASE_DIR)/libkirk/channels
 	install -m 00775 $(abs_srcdir)/kirk-src/kirk $(BASE_DIR)/kirk
-
-	cd $(BASE_DIR) && ln -sf kirk runltp-ng
 endif
 
 include $(top_srcdir)/include/mk/generic_leaf_target.mk
