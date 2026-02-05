@@ -31,7 +31,7 @@ vpath %.mk		$(top_srcdir)/mk:$(top_srcdir)/mk/include
 # BOOTSTRAP_TARGETS:	Directories required to bootstrap out-of-build-tree
 # 			support.
 
-COMMON_TARGETS		:= pan utils
+COMMON_TARGETS		:= utils
 
 define target_to_dir_dep_mapping
 ifeq ($$(filter %-clean,$(1)),) # not *-clean
