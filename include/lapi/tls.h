@@ -22,6 +22,15 @@
 #define TLS_SIZE 4096
 #define TLS_ALIGN 16
 
+/*
+ * Space allocated large enough to hold a struct pthread.
+ *
+ * Zero-initialized to ensure THREAD_SELF->cancelhandling starts at 0,
+ * avoiding undefined behavior (e.g., in clone10.c) in __pthread_disable_asynccancel(),
+ * which is called at thread cancellation points such as write().
+ */
+#define TLS_PRE_TCB_SIZE (TLS_ALIGN * 256)
+
 #if defined(__x86_64__)
 typedef struct {
 	void *tcb;
@@ -36,10 +45,11 @@ extern void *tls_ptr;
 
 static inline void *allocate_tls_area(void)
 {
-	void *tls_area = aligned_alloc(TLS_ALIGN, TLS_SIZE);
+	char *tls_area = aligned_alloc(TLS_ALIGN, TLS_PRE_TCB_SIZE + TLS_SIZE);
 	if (!tls_area)
 		tst_brk(TBROK | TERRNO, "aligned_alloc failed");
-	memset(tls_area, 0, TLS_SIZE);
+	memset(tls_area, 0, TLS_PRE_TCB_SIZE + TLS_SIZE);
+	tls_area += TLS_PRE_TCB_SIZE;
 
 #if defined(__x86_64__)
 	tcb_t *tcb = (tcb_t *)tls_area;
@@ -59,7 +69,7 @@ static inline void free_tls(void)
 {
 	usleep(10000);
 	if (tls_ptr) {
-		free(tls_ptr);
+		free(((char *)tls_ptr) - TLS_PRE_TCB_SIZE);
 		tls_ptr = NULL;
 	}
 }
