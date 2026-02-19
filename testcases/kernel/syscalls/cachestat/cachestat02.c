@@ -17,10 +17,9 @@
 #include <stdlib.h>
 #include "cachestat.h"
 
-#define FILENAME "myfile.bin"
-
 static int page_size;
 static char *page_data;
+static char shm_name[64];
 static struct cachestat *cs;
 static struct cachestat_range *cs_range;
 
@@ -32,7 +31,8 @@ static void test_cached_pages(const int num_pages)
 
 	memset(cs, 0, sizeof(struct cachestat));
 
-	fd = shm_open(FILENAME, O_RDWR | O_CREAT, 0600);
+	snprintf(shm_name, sizeof(shm_name), "/cachestat_%d.bin", getpid());
+	fd = shm_open(shm_name, O_RDWR | O_CREAT | O_EXCL, 0600);
 	if (fd < 0)
 		tst_brk(TBROK | TERRNO, "shm_open error");
 
@@ -53,7 +53,7 @@ static void test_cached_pages(const int num_pages)
 	TST_EXP_EQ_LI(cs->nr_cache + cs->nr_evicted, num_pages);
 
 	SAFE_CLOSE(fd);
-	shm_unlink(FILENAME);
+	shm_unlink(shm_name);
 }
 
 static void run(void)
