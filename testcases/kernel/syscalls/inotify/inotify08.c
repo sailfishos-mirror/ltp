@@ -86,12 +86,7 @@ void verify_inotify(void)
 	SAFE_TOUCH(OVL_LOWER"/"FILE_NAME, 0644, NULL);
 	SAFE_TOUCH(OVL_UPPER"/"FILE_NAME, 0644, NULL);
 
-	int len = read(fd_notify, event_buf, EVENT_BUF_LEN);
-	if (len == -1 && errno != EAGAIN) {
-		tst_brk(TBROK | TERRNO,
-			"read(%d, buf, %zu) failed",
-			fd_notify, EVENT_BUF_LEN);
-	}
+	int len = SAFE_READ(0, fd_notify, event_buf, EVENT_BUF_LEN);
 
 	int i = 0, test_num = 0;
 	while (i < len) {

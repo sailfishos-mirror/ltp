@@ -60,12 +60,7 @@ void verify_inotify(void)
 		/*
 		 * get list on events
 		 */
-		len = read(fd_notify, event_buf, EVENT_BUF_LEN);
-		if (len < 0) {
-			tst_brk(TBROK | TERRNO,
-				"read(%d, buf, %zu) failed",
-				fd_notify, EVENT_BUF_LEN);
-		}
+		len = SAFE_READ(0, fd_notify, event_buf, EVENT_BUF_LEN);
 
 		/*
 		 * check events

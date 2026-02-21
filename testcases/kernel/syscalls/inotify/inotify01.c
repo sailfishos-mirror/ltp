@@ -55,10 +55,7 @@ void verify_inotify(void)
 	event_set[test_cnt] = IN_OPEN;
 	test_cnt++;
 
-	if (read(fd, buf, BUF_SIZE) == -1) {
-		tst_brk(TBROK | TERRNO,
-			"read(%d, buf, %d) failed", fd, BUF_SIZE);
-	}
+	SAFE_READ(0, fd, buf, BUF_SIZE);
 	event_set[test_cnt] = IN_ACCESS;
 	test_cnt++;
 
@@ -70,10 +67,7 @@ void verify_inotify(void)
 	event_set[test_cnt] = IN_OPEN;
 	test_cnt++;
 
-	if (write(fd, buf, BUF_SIZE) == -1) {
-		tst_brk(TBROK,
-			"write(%d, %s, %d) failed", fd, fname, BUF_SIZE);
-	}
+	SAFE_WRITE(SAFE_WRITE_ALL, fd, buf, BUF_SIZE);
 	event_set[test_cnt] = IN_MODIFY;
 	test_cnt++;
 
@@ -85,12 +79,7 @@ void verify_inotify(void)
 	 * get list of events
 	 */
 	int len, i = 0, test_num = 0;
-	if ((len = read(fd_notify, event_buf, EVENT_BUF_LEN)) < 0) {
-		tst_brk(TBROK,
-			"read(%d, buf, %zu) failed",
-			fd_notify, EVENT_BUF_LEN);
-
-	}
+	len = SAFE_READ(0, fd_notify, event_buf, EVENT_BUF_LEN);
 
 	/*
 	 * check events

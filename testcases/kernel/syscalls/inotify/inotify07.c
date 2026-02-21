@@ -88,12 +88,7 @@ void verify_inotify(void)
 	strcpy(event_set[test_cnt].name, FILE_NAME);
 	test_cnt++;
 
-	int len = read(fd_notify, event_buf, EVENT_BUF_LEN);
-	if (len == -1 && errno != EAGAIN) {
-		tst_brk(TBROK | TERRNO,
-			"read(%d, buf, %zu) failed",
-			fd_notify, EVENT_BUF_LEN);
-	}
+	int len = SAFE_READ(0, fd_notify, event_buf, EVENT_BUF_LEN);
 
 	int i = 0, test_num = 0;
 	while (i < len) {
