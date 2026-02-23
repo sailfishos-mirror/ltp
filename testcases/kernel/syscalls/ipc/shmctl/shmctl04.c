@@ -86,24 +86,24 @@ static void parse_proc_sysvipc(struct shm_info *info)
 	}
 
 	if (info->shm_rss != shm_rss) {
-		tst_res(TFAIL, "shm_rss = %li, expected %li",
+		tst_res(TFAIL, "shm_rss = %lu, expected %lu",
 			info->shm_rss, shm_rss);
 	} else {
-		tst_res(TPASS, "shm_rss = %li", shm_rss);
+		tst_res(TPASS, "shm_rss = %lu", shm_rss);
 	}
 
 	if (info->shm_swp != shm_swp) {
-		tst_res(TFAIL, "shm_swp = %li, expected %li",
+		tst_res(TFAIL, "shm_swp = %lu, expected %lu",
 			info->shm_swp, shm_swp);
 	} else {
-		tst_res(TPASS, "shm_swp = %li", shm_swp);
+		tst_res(TPASS, "shm_swp = %lu", shm_swp);
 	}
 
 	if (info->shm_tot != shm_tot) {
-		tst_res(TFAIL, "shm_tot = %li, expected %li",
+		tst_res(TFAIL, "shm_tot = %lu, expected %lu",
 			info->shm_tot, shm_tot);
 	} else {
-		tst_res(TPASS, "shm_tot = %li", shm_tot);
+		tst_res(TPASS, "shm_tot = %lu", shm_tot);
 	}
 
 	SAFE_FCLOSE(f);
