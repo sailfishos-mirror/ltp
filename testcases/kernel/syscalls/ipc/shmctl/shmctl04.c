@@ -57,7 +57,8 @@ static void parse_proc_sysvipc(struct shm_info *info)
 			break;
 	}
 
-	int shmid, size, rss, swap;
+	int shmid, rss, swap;
+	unsigned long size;
 
 	/*
 	 * Sum rss, swap and size for all elements listed, which should equal
@@ -66,7 +67,7 @@ static void parse_proc_sysvipc(struct shm_info *info)
 	 * Note that the size has to be rounded up to nearest multiple of page
 	 * size.
 	 */
-	while (fscanf(f, "%*i %i %*i %i %*i %*i %*i %*i %*i %*i %*i %*i %*i %*i %i %i",
+	while (fscanf(f, "%*i %i %*i %lu %*i %*i %*i %*i %*i %*i %*i %*i %*i %*i %i %i",
 			&shmid, &size, &rss, &swap) > 0) {
 		used_ids++;
 		shm_rss += rss/page_size;
