@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <pwd.h>
 #include "tst_test.h"
+#include "tst_safe_stdio.h"
 #include "tst_safe_sysv_ipc.h"
 #include "tse_newipc.h"
 #include "lapi/shm.h"
@@ -42,7 +43,7 @@ static struct tcases {
 static void parse_proc_sysvipc(struct shm_info *info)
 {
 	int page_size = getpagesize();
-	FILE *f = fopen("/proc/sysvipc/shm", "r");
+	FILE *f = SAFE_FOPEN("/proc/sysvipc/shm", "r");
 	int used_ids = 0;
 	int shmid_max = 0;
 	unsigned long shm_rss = 0;
@@ -105,7 +106,7 @@ static void parse_proc_sysvipc(struct shm_info *info)
 		tst_res(TPASS, "shm_tot = %li", shm_tot);
 	}
 
-	fclose(f);
+	SAFE_FCLOSE(f);
 }
 
 static void verify_shminfo(unsigned int n)
