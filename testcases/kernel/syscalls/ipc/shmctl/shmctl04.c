@@ -68,7 +68,7 @@ static void parse_proc_sysvipc(struct shm_info *info)
 	 * size.
 	 */
 	while (fscanf(f, "%*i %i %*i %lu %*i %*i %*i %*i %*i %*i %*i %*i %*i %*i %i %i",
-			&shmid, &size, &rss, &swap) > 0) {
+			&shmid, &size, &rss, &swap) == 4) {
 		used_ids++;
 		shm_rss += rss/page_size;
 		shm_swp += swap/page_size;
