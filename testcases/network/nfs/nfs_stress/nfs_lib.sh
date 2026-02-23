@@ -45,7 +45,7 @@ TST_SKIP_FILESYSTEMS="exfat,ext2,ext3,fuse,ntfs,vfat,tmpfs"
 TST_MOUNT_DEVICE=1
 TST_FORMAT_DEVICE=1
 TST_NEEDS_ROOT=1
-TST_NEEDS_CMDS="$TST_NEEDS_CMDS mount exportfs mount.nfs"
+TST_NEEDS_CMDS="$TST_NEEDS_CMDS mount mount.nfs"
 TST_SETUP="${TST_SETUP:-nfs_setup}"
 TST_CLEANUP="${TST_CLEANUP:-nfs_cleanup}"
 TST_NEEDS_DRIVERS="nfsd"
@@ -186,9 +186,13 @@ nfs_setup()
 		tst_brk TCONF "Cannot run nfs-stress test on mounted NFS"
 	fi
 
-	if tst_cmd_available pgrep; then
+	tst_rhost_run -c "command -v exportfs >/dev/null" ||
+		tst_brk TCONF "'exportfs' not found on rhost"
+
+	if tst_rhost_run -c "command -v pgrep >/dev/null"; then
+		tst_res TINFO "checking rpc.mountd/rpc.statd on rhost"
 		for i in rpc.mountd rpc.statd; do
-			pgrep $i > /dev/null || tst_brk TCONF "$i not running"
+			tst_rhost_run -c "pgrep $i > /dev/null" || tst_brk TCONF "$i not running on rhost"
 		done
 	fi
 
