@@ -256,9 +256,8 @@ Runtest Files
 ~~~~~~~~~~~~~
 
 The list of tests to be executed is stored in runtest files under the
-:master:`runtest` directory. The default set of runtest files to be executed is
-stored in :master:`scenario_groups/default`. When you add a test, you should add
-corresponding entries into some runtest file(s) as well.
+:master:`runtest` directory. When you add a test, you should add corresponding
+entries into some runtest file(s) as well.
 
 Each line of runtest file contains one test. The first item is the test name.
 All other items, separated by space will be executed as a command.
