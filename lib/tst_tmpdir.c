@@ -101,7 +101,7 @@ static char test_start_work_dir[PATH_MAX];
 /* lib/tst_checkpoint.c */
 extern futex_t *tst_futexes;
 
-static int rmobj(const char *obj, char **errmsg);
+static int rmobjat(int dir_fd, const char *obj, char **errmsg);
 
 int tst_tmpdir_created(void)
 {
@@ -144,34 +144,37 @@ const char *tst_get_startwd(void)
 	return test_start_work_dir;
 }
 
-static int purge_dir(const char *path, char **errptr)
+static int purge_dirat(int dir_fd, const char *path, char **errptr)
 {
 	int ret_val = 0;
 	DIR *dir;
 	struct dirent *dir_ent;
-	char dirobj[PATH_MAX];
 	static char err_msg[PATH_MAX + 1280];
-
-	/* Do NOT perform the request if the directory is "/" */
-	if (!strcmp(path, "/")) {
-		if (errptr) {
-			strcpy(err_msg, "Cannot purge system root directory");
-			*errptr = err_msg;
-		}
-
-		return -1;
-	}
+	int subdir_fd;
 
 	errno = 0;
 
-	/* Open the directory to get access to what is in it */
-	if (!(dir = opendir(path))) {
+	/* Open the subdirectory using openat */
+	subdir_fd = openat(dir_fd, path, O_RDONLY | O_DIRECTORY | O_NOFOLLOW);
+	if (subdir_fd < 0) {
 		if (errptr) {
-			sprintf(err_msg,
-				"Cannot open directory %s; errno=%d: %s",
-				path, errno, tst_strerrno(errno));
+			snprintf(err_msg, sizeof(err_msg),
+				 "Cannot open subdirectory %s (via fd %d); errno=%d: %s",
+				 path, dir_fd, errno, tst_strerrno(errno));
 			*errptr = err_msg;
 		}
+		return -1;
+	}
+
+	dir = fdopendir(subdir_fd);
+	if (!dir) {
+		if (errptr) {
+			snprintf(err_msg, sizeof(err_msg),
+				 "Cannot open directory stream for %s (via fd %d); errno=%d: %s",
+				 path, dir_fd, errno, tst_strerrno(errno));
+			*errptr = err_msg;
+		}
+		close(subdir_fd);
 		return -1;
 	}
 
@@ -183,8 +186,7 @@ static int purge_dir(const char *path, char **errptr)
 			continue;
 
 		/* Recursively remove the current entry */
-		sprintf(dirobj, "%s/%s", path, dir_ent->d_name);
-		if (rmobj(dirobj, errptr) != 0)
+		if (rmobjat(subdir_fd, dir_ent->d_name, errptr) != 0)
 			ret_val = -1;
 	}
 
@@ -192,63 +194,53 @@ static int purge_dir(const char *path, char **errptr)
 	return ret_val;
 }
 
-static int rmobj(const char *obj, char **errmsg)
+static int rmobjat(int dir_fd, const char *obj, char **errmsg)
 {
 	int ret_val = 0;
 	struct stat statbuf;
 	static char err_msg[PATH_MAX + 1280];
 	int fd;
 
-	fd = open(obj, O_DIRECTORY | O_NOFOLLOW);
+	fd = openat(dir_fd, obj, O_DIRECTORY | O_NOFOLLOW);
 	if (fd >= 0) {
 		close(fd);
-		ret_val = purge_dir(obj, errmsg);
+		ret_val = purge_dirat(dir_fd, obj, errmsg);
 
 		/* If there were problems removing an entry, don't attempt to
 		   remove the directory itself */
 		if (ret_val == -1)
 			return -1;
 
+		int flags = AT_REMOVEDIR;
+
 		/* Get the link count, now that all the entries have been removed */
-		if (lstat(obj, &statbuf) < 0) {
+		if (fstatat(dir_fd, obj, &statbuf, AT_SYMLINK_NOFOLLOW) < 0) {
 			if (errmsg != NULL) {
-				sprintf(err_msg,
-					"lstat(%s) failed; errno=%d: %s", obj,
+				snprintf(err_msg, sizeof(err_msg),
+					"fstatat(%s) failed; errno=%d: %s", obj,
 					errno, tst_strerrno(errno));
 				*errmsg = err_msg;
 			}
 			return -1;
 		}
 
-		/* Remove the directory itself */
-		if (statbuf.st_nlink >= 3) {
-			/* The directory is linked; unlink() must be used */
-			if (unlink(obj) < 0) {
-				if (errmsg != NULL) {
-					sprintf(err_msg,
-						"unlink(%s) failed; errno=%d: %s",
-						obj, errno, tst_strerrno(errno));
-					*errmsg = err_msg;
-				}
-				return -1;
-			}
-		} else {
-			/* The directory is not linked; remove() can be used */
-			if (remove(obj) < 0) {
-				if (errmsg != NULL) {
-					sprintf(err_msg,
+		if (statbuf.st_nlink >= 3)
+			flags = 0;
+
+		if (unlinkat(dir_fd, obj, flags) < 0) {
+			if (errmsg != NULL) {
+				snprintf(err_msg, sizeof(err_msg),
 						"remove(%s) failed; errno=%d: %s",
 						obj, errno, tst_strerrno(errno));
-					*errmsg = err_msg;
-				}
-				return -1;
+				*errmsg = err_msg;
 			}
+			return -1;
 		}
 	} else {
-		if (unlink(obj) < 0) {
+		if (unlinkat(dir_fd, obj, 0) < 0) {
 			if (errmsg != NULL) {
-				sprintf(err_msg,
-					"unlink(%s) failed; errno=%d: %s", obj,
+				snprintf(err_msg, sizeof(err_msg),
+					"unlinkat(%s) failed; errno=%d: %s", obj,
 					errno, tst_strerrno(errno));
 				*errmsg = err_msg;
 			}
@@ -305,7 +297,7 @@ void tst_tmpdir(void)
 		tst_resm(TERRNO, "%s: chdir(%s) failed", __func__, TESTDIR);
 
 		/* Try to remove the directory */
-		if (rmobj(TESTDIR, &errmsg) == -1) {
+		if (rmobjat(AT_FDCWD, TESTDIR, &errmsg) == -1) {
 			tst_resm(TWARN, "%s: rmobj(%s) failed: %s",
 				 __func__, TESTDIR, errmsg);
 		}
@@ -343,7 +335,7 @@ void tst_rmdir(void)
 	/*
 	 * Attempt to remove the "TESTDIR" directory, using rmobj().
 	 */
-	if (rmobj(TESTDIR, &errmsg) == -1) {
+	if (rmobjat(AT_FDCWD, TESTDIR, &errmsg) == -1) {
 		tst_resm(TWARN, "%s: rmobj(%s) failed: %s",
 			 __func__, TESTDIR, errmsg);
 	}
@@ -353,7 +345,7 @@ void tst_purge_dir(const char *path)
 {
 	char *err;
 
-	if (purge_dir(path, &err))
+	if (purge_dirat(AT_FDCWD, path, &err))
 		tst_brkm(TBROK, NULL, "%s: %s", __func__, err);
 }
 
