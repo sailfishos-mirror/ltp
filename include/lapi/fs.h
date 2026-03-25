@@ -136,4 +136,25 @@ static inline int file_setattr(int dfd, const char *filename,
 }
 #endif
 
+#ifndef HAVE_STRUCT_LOGICAL_BLOCK_METADATA_CAP
+struct logical_block_metadata_cap {
+	uint32_t	lbmd_flags;
+	uint16_t	lbmd_interval;
+	uint8_t		lbmd_size;
+	uint8_t		lbmd_opaque_size;
+	uint8_t		lbmd_opaque_offset;
+	uint8_t		lbmd_pi_size;
+	uint8_t		lbmd_pi_offset;
+	uint8_t		lbmd_guard_tag_type;
+	uint8_t		lbmd_app_tag_size;
+	uint8_t		lbmd_ref_tag_size;
+	uint8_t		lbmd_storage_tag_size;
+	uint8_t		pad;
+};
+#endif
+
+#ifndef FS_IOC_GETLBMD_CAP
+# define FS_IOC_GETLBMD_CAP	_IOWR(0x15, 2, struct logical_block_metadata_cap)
+#endif
+
 #endif /* LAPI_FS_H__ */
