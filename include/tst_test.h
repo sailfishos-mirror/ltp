@@ -696,35 +696,97 @@ void tst_reinit(void);
  */
 int tst_run_script(const char *script_name, char *const params[]);
 
-/*
- * Sets entire timeout in seconds.
+/**
+ * tst_set_timeout() - Sets the timeout for single test iteration.
+ *
+ * Allows to set timeout dynamically during the test setup.
+ *
+ * This is used only for rare cases that the test does something that runs for
+ * a long time and cannot be easily interrupted (otherwise it would set
+ * :c:type:`.runtime <tst_test>` and exit when runtime was exhausted).
+ *
+ * The timeout is multiplied by tst_multiply_timeout() internally in the test
+ * library.
+ *
+ * @timeout: A timeout for a single iteration of the test in seconds.
  */
 void tst_set_timeout(int timeout);
 
+/**
+ * tst_multiply_timeout() - Uses heuristics to multiply a time interval based on
+ * expected CPU slowdowns.
+ *
+ * If a machine is expected to be slow for some reason, e.g. if we run on an
+ * emulated CPU, a user can export :doc:`LTP_TIMEOUT_MUL
+ * <../users/setup_tests>` variable that is used by this call to multiply the
+ * interval.
+ *
+ * Various kernel configuration (debugging) options that slow down the machine
+ * are detected automatically and are taken into account.
+ *
+ * This function is used internally in the test library to multiply various
+ * timeouts to make sure that they match the expected slowdown.
+ *
+ * @timeout: A timeout.
+ *
+ * Return: A timeout multiplied by an expected slowdown coefficient.
+ */
 unsigned int tst_multiply_timeout(unsigned int timeout);
 
-/*
- * Returns remaining test runtime. Test that runs for more than a few seconds
- * should check if they should exit by calling this function regularly.
+/**
+ * tst_remaining_runtime() - Returns the remaining test runtime.
  *
  * The function returns remaining runtime in seconds. If runtime was used up
  * zero is returned.
+ *
+ * Test that runs for more than a few seconds should check if they should exit
+ * by calling this function regularly.
+ *
+ * Return: A remaining test runtime in seconds.
  */
 unsigned int tst_remaining_runtime(void);
 
-/*
- * Sets maximal test runtime in seconds.
+/**
+ * tst_set_runtime() - Sets maximal test runtime in seconds.
+ *
+ * Allows for setting the runtime per test iteration dynamically during the test
+ * setup phase. The runtime is specified in seconds and defines how long the
+ * test is allowed to execute its main workload, excluding the setup and
+ * teardown phases.
+ *
+ * This function is useful for tests where the duration of the main workload can
+ * be controlled or needs to be adjusted dynamically. For example, tests that
+ * run in a loop until the runtime expires can use this function to define how
+ * long they should execute.
+ *
+ * A test that sets a runtime must monitor the remaining time with
+ * tst_remaining_runtime() in the main loop.
+ *
+ * @runtime: A timeout in seconds.
  */
 void tst_set_runtime(int runtime);
 
-/*
- * Create and open a random file inside the given dir path.
- * It unlinks the file after opening and return file descriptor.
+/**
+ * tst_creat_unlinked() - Create, open, and unlink a file.
+ *
+ * Creates and opens a unique file name inside the given directory path,
+ * unlinks the file after opening and returns a file descriptor.
+ *
+ * @path: Path to the directory.
+ * @flags: :manpage:`open(2)` flags.
+ * @mode: :manpage:`open(2)` mode.
+ *
+ * Return: A file descriptor.
  */
 int tst_creat_unlinked(const char *path, int flags, mode_t mode);
 
-/*
- * Returns path to the test temporary directory root (TMPDIR).
+/**
+ * tst_get_tmpdir_root() - Returns path to the test temporary directory root.
+ *
+ * The path is either hardcoded as /tmp or could be overrided by a TMPDIR
+ * environment variable.
+ *
+ * Return: A path to the test temporary directory root.
  */
 const char *tst_get_tmpdir_root(void);
 
@@ -740,13 +802,16 @@ const char *tst_get_tmpdir_root(void);
  */
 bool tst_cmd_present(const char *cmd);
 
-/*
- * Validates exit status of child processes
- */
 int tst_validate_children_(const char *file, const int lineno,
 	unsigned int count);
-#define tst_validate_children(child_count) \
-	tst_validate_children_(__FILE__, __LINE__, (child_count))
+
+/**
+ * tst_validate_children() - Validates exit status of the child processes.
+ *
+ * @count: Number of the child processes.
+ */
+#define tst_validate_children(count) \
+	tst_validate_children_(__FILE__, __LINE__, (count))
 
 #ifndef TST_NO_DEFAULT_MAIN
 
