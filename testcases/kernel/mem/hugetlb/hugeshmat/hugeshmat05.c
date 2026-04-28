@@ -39,7 +39,7 @@ void setup(void)
 	hpage_size = SAFE_READ_MEMINFO("Hugepagesize:") * 1024;
 }
 
-void shm_test(int size)
+void shm_test(size_t size)
 {
 	int shmid;
 	char *shmaddr;
@@ -56,7 +56,7 @@ void shm_test(int size)
 	}
 
 	shmaddr[0] = 1;
-	tst_res(TINFO, "allocated %d huge bytes", size);
+	tst_res(TINFO, "allocated %zu huge bytes", size);
 
 	if (shmdt((const void *)shmaddr) != 0) {
 		shmctl(shmid, IPC_RMID, NULL);
@@ -70,7 +70,7 @@ static void test_hugeshmat(void)
 {
 	unsigned int i;
 
-	const int tst_sizes[] = {
+	const size_t tst_sizes[] = {
 		N * hpage_size - page_size,
 		N * hpage_size - page_size - 1,
 		hpage_size,
