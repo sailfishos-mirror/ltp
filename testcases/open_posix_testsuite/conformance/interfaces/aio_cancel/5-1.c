@@ -95,8 +95,8 @@ int test_main(int argc PTS_ATTRIBUTE_UNUSED, char **argv PTS_ATTRIBUTE_UNUSED)
 	}
 
 	if (ret != AIO_NOTCANCELED) {
-		printf(TNAME " Unexpected aio_cancel() return value: %s\n",
-			strerror(ret));
+		printf(TNAME " Unexpected aio_cancel() return value: %d\n",
+			ret);
 		cleanup_aio(fds, aiocb, BUF_NB);
 		return PTS_FAIL;
 	}
@@ -131,8 +131,9 @@ int test_main(int argc PTS_ATTRIBUTE_UNUSED, char **argv PTS_ATTRIBUTE_UNUSED)
 		}
 
 		if (ret != exp_ret) {
-			printf(TNAME " Bad task #%d result: %s (expected %s)\n",
-				i, strerror(ret), strerror(exp_ret));
+			printf(TNAME " Bad task #%d result: %s",
+				i, strerror(ret));
+			printf(" (expected %s)\n", strerror(exp_ret));
 			cleanup_aio(fds, aiocb, BUF_NB);
 			return PTS_FAIL;
 		}
