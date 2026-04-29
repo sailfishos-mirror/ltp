@@ -104,4 +104,8 @@ static void run(void)
 static struct tst_test test = {
 	.test_all = run,
 	.cleanup = reset_pages,
+	.needs_kconfigs = (const char *[]) {
+		"CONFIG_USERFAULTFD=y",
+		NULL
+	}
 };
