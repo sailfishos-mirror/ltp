@@ -99,6 +99,7 @@ static char *blacklist[] = {
 	"/sys/devices/platform/*/eeprom",
 	"/sys/devices/platform/*/nvmem",
 	"/sys/*/cpu??*(?)/*",	/* cpu* entries with 2 or more digits */
+	"/dev/fuse",
 	NULL
 };
 
