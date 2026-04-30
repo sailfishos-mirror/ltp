@@ -195,6 +195,9 @@ void tst_reinit(void)
 	size_t size = getpagesize();
 	int fd;
 
+	if (ipc)
+		tst_brk(TBROK, "Test library already initialized!");
+
 	if (!path)
 		tst_brk(TBROK, IPC_ENV_VAR" is not defined");
 
