@@ -23,6 +23,15 @@ static inline int pts_mono_available(void)
 	return 0;
 }
 
+static inline clockid_t pts_get_clock(void)
+{
+	if (pts_mono_available())
+		return CLOCK_MONOTONIC;
+
+	printf("CLOCK_MONOTONIC unavailable, test may fail due to clock adjustment\n");
+	return CLOCK_REALTIME;
+}
+
 #define PTS_MONO_MAX_RETRIES 3
 
 static struct timespec pts_mono_start;

@@ -11,24 +11,16 @@
 #include <stdio.h>
 #include <time.h>
 #include "posixtest.h"
-
-#ifdef _POSIX_MONOTONIC_CLOCK
-#define TEST_CLOCK CLOCK_MONOTONIC
-#else
-#define TEST_CLOCK CLOCK_REALTIME
-#endif
+#include "clock.h"
 
 int test_main(int argc PTS_ATTRIBUTE_UNUSED, char **argv PTS_ATTRIBUTE_UNUSED)
 {
 	struct timespec tssleepfor, tsstorage, tsbefore, tsafter;
 	int sleepnsec = 3;
 	int slepts = 0, sleptns = 0;
+	clockid_t test_clock = pts_get_clock();
 
-#ifndef _POSIX_MONOTONIC_CLOCK
-	printf("CLOCK_MONOTONIC unavailable, test may fail due to external clock adjustments\n");
-#endif
-
-	if (clock_gettime(TEST_CLOCK, &tsbefore) == -1) {
+	if (clock_gettime(test_clock, &tsbefore) == -1) {
 		perror("Error in clock_gettime()\n");
 		return PTS_UNRESOLVED;
 	}
@@ -40,7 +32,7 @@ int test_main(int argc PTS_ATTRIBUTE_UNUSED, char **argv PTS_ATTRIBUTE_UNUSED)
 		return PTS_UNRESOLVED;
 	}
 
-	if (clock_gettime(TEST_CLOCK, &tsafter) == -1) {
+	if (clock_gettime(test_clock, &tsafter) == -1) {
 		perror("Error in clock_gettime()\n");
 		return PTS_UNRESOLVED;
 	}
