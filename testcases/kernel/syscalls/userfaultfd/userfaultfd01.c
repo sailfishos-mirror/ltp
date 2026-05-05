@@ -28,10 +28,10 @@ static struct tcase {
 	{ DESC(O_CLOEXEC | O_NONBLOCK | UFFD_USER_MODE_ONLY),  .kver = AFTER_5_11, },
 };
 
-static int page_size;
+static long page_size;
 static char *page;
 static void *copy_page;
-static int uffd;
+static int uffd = -1;
 static int kver;
 
 static void setup(void)
@@ -44,7 +44,7 @@ static void setup(void)
 
 static void set_pages(void)
 {
-	page_size = sysconf(_SC_PAGE_SIZE);
+	page_size = SAFE_SYSCONF(_SC_PAGE_SIZE);
 	page = SAFE_MMAP(NULL, page_size, PROT_READ | PROT_WRITE,
 			MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 	copy_page = SAFE_MMAP(NULL, page_size, PROT_READ | PROT_WRITE,
@@ -53,11 +53,19 @@ static void set_pages(void)
 
 static void reset_pages(void)
 {
-	SAFE_MUNMAP(page, page_size);
-	SAFE_MUNMAP(copy_page, page_size);
+	if (page) {
+		SAFE_MUNMAP(page, page_size);
+		page = NULL;
+	}
+	if (copy_page) {
+		SAFE_MUNMAP(copy_page, page_size);
+		copy_page = NULL;
+	}
+	if (uffd != -1)
+		SAFE_CLOSE(uffd);
 }
 
-static void *handle_thread(void)
+static void *handle_thread(void *arg LTP_ATTRIBUTE_UNUSED)
 {
 	static struct uffd_msg msg;
 	struct uffdio_copy uffdio_copy = {};
@@ -74,18 +82,18 @@ static void *handle_thread(void)
 	SAFE_READ(1, uffd, &msg, sizeof(msg));
 
 	if (msg.event != UFFD_EVENT_PAGEFAULT)
-		tst_brk(TBROK | TERRNO, "Received unexpected UFFD_EVENT %d", msg.event);
+		tst_brk(TFAIL, "Received unexpected UFFD_EVENT %d", msg.event);
 
 	memset(copy_page, 'X', page_size);
 
 	uffdio_copy.src = (unsigned long) copy_page;
 
 	uffdio_copy.dst = (unsigned long) msg.arg.pagefault.address
-			& ~(page_size - 1);
+			& ~((unsigned long)page_size - 1);
 	uffdio_copy.len = page_size;
 	SAFE_IOCTL(uffd, UFFDIO_COPY, &uffdio_copy);
 
-	close(uffd);
+	SAFE_CLOSE(uffd);
 	return NULL;
 }
 
@@ -129,4 +137,5 @@ static struct tst_test test = {
 	.setup = setup,
 	.test = run,
 	.tcnt = ARRAY_SIZE(tcases),
+	.cleanup = reset_pages,
 };

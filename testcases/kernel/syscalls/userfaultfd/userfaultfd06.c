@@ -19,9 +19,9 @@
 #include "tst_safe_pthread.h"
 #include "lapi/userfaultfd.h"
 
-static int page_size;
+static long page_size;
 static char *page;
-static int uffd;
+static int uffd = -1;
 static int poison_fault_seen;
 static volatile int sigbus_seen;
 static sigjmp_buf jmpbuf;
@@ -45,7 +45,7 @@ static void setup(void)
 
 static void set_pages(void)
 {
-	page_size = sysconf(_SC_PAGE_SIZE);
+	page_size = SAFE_SYSCONF(_SC_PAGE_SIZE);
 	page = SAFE_MMAP(NULL, page_size, PROT_READ | PROT_WRITE,
 			MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 }
@@ -56,9 +56,11 @@ static void reset_pages(void)
 		SAFE_MUNMAP(page, page_size);
 		page = NULL;
 	}
+	if (uffd != -1)
+		SAFE_CLOSE(uffd);
 }
 
-static void *handle_thread(void)
+static void *handle_thread(void *arg LTP_ATTRIBUTE_UNUSED)
 {
 	static struct uffd_msg msg;
 	struct uffdio_poison uffdio_poison = {};
@@ -79,12 +81,12 @@ static void *handle_thread(void)
 	tst_atomic_store(1, &poison_fault_seen);
 
 	/* Poison the page that triggered the fault */
-	uffdio_poison.range.start = msg.arg.pagefault.address & ~(page_size - 1);
+	uffdio_poison.range.start = msg.arg.pagefault.address & ~((unsigned long)page_size - 1);
 	uffdio_poison.range.len = page_size;
 
 	SAFE_IOCTL(uffd, UFFDIO_POISON, &uffdio_poison);
 
-	close(uffd);
+	SAFE_CLOSE(uffd);
 	return NULL;
 }
 

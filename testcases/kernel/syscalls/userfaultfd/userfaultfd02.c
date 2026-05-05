@@ -16,14 +16,14 @@
 #include "tst_safe_pthread.h"
 #include "lapi/userfaultfd.h"
 
-static int page_size;
+static long page_size;
 static char *page;
 static void *move_page;
-static int uffd;
+static int uffd = -1;
 
 static void set_pages(void)
 {
-	page_size = sysconf(_SC_PAGE_SIZE);
+	page_size = SAFE_SYSCONF(_SC_PAGE_SIZE);
 	page = SAFE_MMAP(NULL, page_size, PROT_READ | PROT_WRITE,
 			MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 	move_page = SAFE_MMAP(NULL, page_size, PROT_READ | PROT_WRITE,
@@ -32,11 +32,19 @@ static void set_pages(void)
 
 static void reset_pages(void)
 {
-	SAFE_MUNMAP(page, page_size);
-	SAFE_MUNMAP(move_page, page_size);
+	if (page) {
+		SAFE_MUNMAP(page, page_size);
+		page = NULL;
+	}
+	if (move_page) {
+		SAFE_MUNMAP(move_page, page_size);
+		move_page = NULL;
+	}
+	if (uffd != -1)
+		SAFE_CLOSE(uffd);
 }
 
-static void *handle_thread(void)
+static void *handle_thread(void *arg LTP_ATTRIBUTE_UNUSED)
 {
 	static struct uffd_msg msg;
 	struct uffdio_move uffdio_move = {};
@@ -44,18 +52,18 @@ static void *handle_thread(void)
 	SAFE_READ(1, uffd, &msg, sizeof(msg));
 
 	if (msg.event != UFFD_EVENT_PAGEFAULT)
-		tst_brk(TBROK | TERRNO, "Received unexpected UFFD_EVENT %d", msg.event);
+		tst_brk(TFAIL, "Received unexpected UFFD_EVENT %d", msg.event);
 
 	memset(move_page, 'X', page_size);
 
 	uffdio_move.src = (unsigned long) move_page;
 
 	uffdio_move.dst = (unsigned long) msg.arg.pagefault.address
-			& ~(page_size - 1);
+			& ~((unsigned long)page_size - 1);
 	uffdio_move.len = page_size;
 	SAFE_IOCTL(uffd, UFFDIO_MOVE, &uffdio_move);
 
-	close(uffd);
+	SAFE_CLOSE(uffd);
 	return NULL;
 }
 
@@ -94,4 +102,5 @@ static void run(void)
 static struct tst_test test = {
 	.test_all = run,
 	.min_kver = "6.8",
+	.cleanup = reset_pages,
 };

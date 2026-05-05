@@ -17,14 +17,14 @@
 #include "tst_safe_pthread.h"
 #include "lapi/userfaultfd.h"
 
-static int page_size;
+static long page_size;
 static char *page;
-static int uffd;
+static int uffd = -1;
 static volatile int wp_fault_seen;
 
 static void set_pages(void)
 {
-	page_size = sysconf(_SC_PAGE_SIZE);
+	page_size = SAFE_SYSCONF(_SC_PAGE_SIZE);
 	page = SAFE_MMAP(NULL, page_size, PROT_READ | PROT_WRITE,
 			MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 
@@ -33,10 +33,15 @@ static void set_pages(void)
 
 static void reset_pages(void)
 {
-	SAFE_MUNMAP(page, page_size);
+	if (page) {
+		SAFE_MUNMAP(page, page_size);
+		page = NULL;
+	}
+	if (uffd != -1)
+		SAFE_CLOSE(uffd);
 }
 
-static void *handle_thread(void)
+static void *handle_thread(void *arg LTP_ATTRIBUTE_UNUSED)
 {
 	static struct uffd_msg msg;
 	struct uffdio_writeprotect uffdio_writeprotect = {};
@@ -70,12 +75,12 @@ static void *handle_thread(void)
 	wp_fault_seen = 1;
 
 	/* Resolve the fault by clearing WP so the writer can resume. */
-	uffdio_writeprotect.range.start	= msg.arg.pagefault.address & ~(page_size - 1);
+	uffdio_writeprotect.range.start	= msg.arg.pagefault.address & ~((unsigned long)page_size - 1);
 	uffdio_writeprotect.range.len	= page_size;
 
 	SAFE_IOCTL(uffd, UFFDIO_WRITEPROTECT, &uffdio_writeprotect);
 
-	close(uffd);
+	SAFE_CLOSE(uffd);
 	return NULL;
 }
 
@@ -127,5 +132,6 @@ static struct tst_test test = {
 	.needs_kconfigs = (const char *[]) {
 		"CONFIG_HAVE_ARCH_USERFAULTFD_WP=y",
 		NULL
-	}
+	},
+	.cleanup = reset_pages,
 };
