@@ -170,11 +170,10 @@ test3()
 
 	echo 'testing testing' > $FILE
 
-	ima_mmap -f $FILE &
+	ima_mmap $FILE &
 	pid=$!
 
-	# wait for violations appear in logs
-	TST_CHECKPOINT_WAKE_AND_WAIT 0
+	TST_CHECKPOINT_WAIT 0
 
 	open_file_read
 	close_file_read
