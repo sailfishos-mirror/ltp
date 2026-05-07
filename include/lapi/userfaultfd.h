@@ -277,4 +277,24 @@ retry:
 	return ret;
 }
 
+#define CHECK_UFFD_FEATURE(feature)	check_uffd_feature(feature, #feature)
+
+static inline void check_uffd_feature(uint64_t feature, const char *name)
+{
+	struct uffdio_api uffdio_api = {};
+	int uffd;
+
+	uffd = SAFE_USERFAULTFD(O_CLOEXEC | O_NONBLOCK, false);
+
+	uffdio_api.api = UFFD_API;
+	SAFE_IOCTL(uffd, UFFDIO_API, &uffdio_api);
+
+	if (!(uffdio_api.features & feature)) {
+		SAFE_CLOSE(uffd);
+		tst_brk(TCONF, "%s not supported", name);
+	}
+
+	SAFE_CLOSE(uffd);
+}
+
 #endif /* LAPI_USERFAULTFD_H__ */
