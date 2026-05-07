@@ -30,6 +30,15 @@ extensions = [
     'sphinx.ext.extlinks',
 ]
 
+# Configure autosectionlabel to prefix labels with document name
+# This prevents duplicate labels when same test name appears in multiple files
+autosectionlabel_prefix_document = True
+# Only create labels for sections with unique names
+autosectionlabel_maxdepth = 2
+
+# Suppress duplicate label warnings for kernel-doc generated content
+suppress_warnings = ['autosectionlabel.*']
+
 exclude_patterns = ["html*", '_static*', '.venv*']
 extlinks = {
     'repo': (f'{ltp_repo}/%s', '%s'),
@@ -535,6 +544,80 @@ def generate_test_catalog(_):
     with open(output, 'w+', encoding='utf-8') as new_tests:
         new_tests.write('\n'.join(text))
 
+def generate_cve_catalog(_):
+    """
+    Generate CVE catalog in a single file by extracting CVE tags from
+    metadata/ltp.json. This creates a single _static/cve.rst file with
+    all CVE information and links to test sources.
+    """
+    output = '_static/cve.rst'
+    metadata_file = '../metadata/ltp.json'
+
+    # Load metadata
+    metadata = None
+    try:
+        with open(metadata_file, 'r', encoding='utf-8') as data:
+            metadata = json.load(data)
+    except FileNotFoundError:
+        logger = sphinx.util.logging.getLogger(__name__)
+        msg = f"Can't find metadata file ({metadata_file})"
+        logger.warning(msg)
+        return
+
+    # Extract CVE information from test tags
+    cve_data = {}
+    tests = metadata.get('tests', {})
+
+    for test_name, test_info in tests.items():
+        tags = test_info.get('tags', [])
+        for tag in tags:
+            if len(tag) >= 2 and tag[0] == 'CVE':
+                cve_id = tag[1].upper()
+                # Normalize CVE ID format: ensure it starts with "CVE-"
+                if not cve_id.startswith('CVE-'):
+                    cve_id = 'CVE-' + cve_id
+                if cve_id not in cve_data:
+                    cve_data[cve_id] = []
+                cve_data[cve_id].append(test_name)
+
+    # Generate single CVE catalog file
+    total_cves = len(cve_data)
+    text = [
+        '.. warning::',
+        '    The following CVE catalog has been generated from test',
+        '    metadata and includes all CVE reproducers in LTP.',
+        '',
+        f'LTP includes reproducers for {total_cves} known CVEs.',
+        '',
+        '.. list-table::',
+        '   :header-rows: 1',
+        '   :widths: 40 60',
+        '',
+        '   * - CVE ID',
+        '     - Test Name(s)',
+    ]
+
+    # Add CVEs in descending order (newest first)
+    for cve_id in sorted(cve_data.keys(), reverse=True):
+        test_names = cve_data[cve_id]
+
+        # Create cross-references for all tests
+        test_links = []
+        for test_name in sorted(test_names):
+            test_anchor = f"users/test_catalog:{test_name}"
+            test_link = f":ref:`{test_name} <{test_anchor}>`"
+            test_links.append(test_link)
+
+        # Join multiple tests with commas
+        tests_str = ', '.join(test_links)
+
+        text.extend([
+            f'   * - {cve_id}',
+            f'     - {tests_str}',
+        ])
+
+    with open(output, 'w+', encoding='utf-8') as cve_catalog:
+        cve_catalog.write('\n'.join(text))
 
 def setup(app):
     """
@@ -543,4 +626,5 @@ def setup(app):
     """
     app.add_css_file('custom.css')
     app.connect('builder-inited', generate_syscalls_stats)
+    app.connect('builder-inited', generate_cve_catalog)
     app.connect('builder-inited', generate_test_catalog)

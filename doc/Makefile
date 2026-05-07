@@ -31,7 +31,7 @@ spelling:
 
 clean:
 	rm -rf html/ build/ _static/syscalls.rst _static/tests.rst syscalls.tbl \
-		${abs_top_builddir}/metadata/ltp.json
+		_static/cve.rst ${abs_top_builddir}/metadata/ltp.json
 
 distclean: clean
 	rm -rf $(VENV_DIR)
