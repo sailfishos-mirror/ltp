@@ -22,6 +22,11 @@ static char *page;
 static int uffd = -1;
 static volatile int wp_fault_seen;
 
+static void setup(void)
+{
+	CHECK_UFFD_FEATURE(UFFD_FEATURE_PAGEFAULT_FLAG_WP);
+}
+
 static void set_pages(void)
 {
 	page_size = SAFE_SYSCONF(_SC_PAGE_SIZE);
@@ -87,7 +92,7 @@ static void *handle_thread(void *arg LTP_ATTRIBUTE_UNUSED)
 static void run(void)
 {
 	pthread_t thr;
-	struct uffdio_api uffdio_api;
+	struct uffdio_api uffdio_api = {};
 	struct uffdio_register uffdio_register;
 	struct uffdio_writeprotect uffdio_writeprotect;
 
@@ -127,6 +132,7 @@ static void run(void)
 }
 
 static struct tst_test test = {
+	.setup = setup,
 	.test_all = run,
 	.min_kver = "5.7",
 	.needs_kconfigs = (const char *[]) {

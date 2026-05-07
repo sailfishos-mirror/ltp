@@ -38,6 +38,8 @@ static void setup(void)
 {
 	struct sigaction sa = {};
 
+	CHECK_UFFD_FEATURE(UFFD_FEATURE_POISON);
+
 	sa.sa_handler = sigbus_handler;
 	sigemptyset(&sa.sa_mask);
 	SAFE_SIGACTION(SIGBUS, &sa, NULL);
@@ -99,6 +101,7 @@ static void run(void)
 
 	poison_fault_seen = 0;
 	sigbus_seen = 0;
+
 	set_pages();
 
 	uffd = SAFE_USERFAULTFD(O_CLOEXEC | O_NONBLOCK, false);
@@ -107,9 +110,6 @@ static void run(void)
 	uffdio_api.features = UFFD_FEATURE_POISON;
 
 	SAFE_IOCTL(uffd, UFFDIO_API, &uffdio_api);
-
-	if (!(uffdio_api.features & UFFD_FEATURE_POISON))
-		tst_brk(TCONF, "UFFD_FEATURE_POISON not supported");
 
 	uffdio_register.range.start = (unsigned long) page;
 	uffdio_register.range.len = page_size;
