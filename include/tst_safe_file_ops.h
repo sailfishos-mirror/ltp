@@ -14,6 +14,27 @@
 	safe_file_scanf(__FILE__, __LINE__, NULL, \
 	                (path), (fmt), ## __VA_ARGS__)
 
+/**
+ * SAFE_FILE_READ_STR() - Reads a string from a file.
+ *
+ * Unlike scanf("%s") this function works fine with empty files or files that
+ * consist only of white spaces. In such case an empty string is stored into
+ * the supplied buffer.
+ *
+ * It's recommended to use this for various sysfs or procfs files that may be
+ * empty.
+ *
+ * @path: A path to a file.
+ * @buf: A buffer to store the string into.
+ * @buf_size: A buffer size.
+ */
+#define SAFE_FILE_READ_STR(path, buf, buf_size) \
+	safe_file_read_str(__FILE__, __LINE__, \
+	                   (path), (buf), (buf_size))
+
+void safe_file_read_str(const char *file, const int lineno,
+                        const char *path, char *buf, size_t buf_size);
+
 #define FILE_LINES_SCANF(path, fmt, ...) \
 	file_lines_scanf(__FILE__, __LINE__, NULL, 0,\
 			(path), (fmt), ## __VA_ARGS__)

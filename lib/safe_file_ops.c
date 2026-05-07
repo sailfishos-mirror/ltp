@@ -160,6 +160,32 @@ void safe_file_scanf(const char *file, const int lineno,
 	}
 }
 
+void safe_file_read_str(const char *file, const int lineno,
+                        const char *path, char *buf, size_t buf_size)
+{
+	FILE *f;
+
+	f = fopen(path, "r");
+	if (!f) {
+		tst_brkm_(file, lineno, TBROK | TERRNO, NULL,
+		          "Failed to open FILE '%s' for reading", path);
+		return;
+	}
+
+	if (!fgets(buf, buf_size, f))
+		buf[0] = 0;
+
+	size_t len = strlen(buf);
+
+	if (len && buf[len-1] == '\n')
+		buf[len-1] = 0;
+
+	if (fclose(f)) {
+		tst_brkm_(file, lineno, TBROK | TERRNO, NULL,
+			"Failed to close FILE '%s'", path);
+		return;
+	}
+}
 
 /*
  * Try to parse each line from file specified by 'path' according
