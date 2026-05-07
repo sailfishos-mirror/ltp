@@ -97,6 +97,7 @@ static void run(void)
 	struct uffdio_writeprotect uffdio_writeprotect;
 
 	set_pages();
+	wp_fault_seen = 0;
 
 	uffd = SAFE_USERFAULTFD(O_CLOEXEC | O_NONBLOCK, false);
 
