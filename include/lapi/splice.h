@@ -17,6 +17,10 @@
 #include "config.h"
 #include "lapi/syscalls.h"
 
+#ifndef SPLICE_F_MORE
+# define SPLICE_F_MORE 4
+#endif
+
 #if !defined(HAVE_SPLICE)
 static inline ssize_t splice(int fd_in, loff_t *off_in, int fd_out,
                              loff_t *off_out, size_t len, unsigned int flags)
