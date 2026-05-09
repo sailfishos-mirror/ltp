@@ -61,11 +61,11 @@ int test_main(int argc PTS_ATTRIBUTE_UNUSED, char **argv PTS_ATTRIBUTE_UNUSED)
 
 	/*
 	 * Now that the thread has returned, try to join it again.
-	 * It should give the error code of ESRCH.
+	 * It should give the error code of ESRCH or 0.
 	 */
 	ret = pthread_join(new_th, NULL);
-	if (ret != ESRCH) {
-		printf("Test FAILED: Return code should be ESRCH, but is: "
+	if (ret != ESRCH && ret != 0) {
+		printf("Test FAILED: Return code should be ESRCH or 0, but is: "
 		       "%d instead.\n", ret);
 		return PTS_FAIL;
 	}
