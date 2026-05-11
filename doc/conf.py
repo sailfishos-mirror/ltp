@@ -293,7 +293,7 @@ def _generate_tags_table(tags):
         "linux-stable-git": "https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/commit/?id=",
         "glibc-git": "https://sourceware.org/git/?p=glibc.git;a=commit;h=",
         "musl-git": "https://git.musl-libc.org/cgit/musl/commit/src/linux/clone.c?id=",
-        "CVE": "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-",
+        "CVE": "https://www.cve.org/CVERecord?id=CVE-",
     }
 
     table = [
