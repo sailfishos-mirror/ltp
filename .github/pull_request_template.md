@@ -9,6 +9,9 @@ We also have a patchwork instance: https://patchwork.ozlabs.org/project/ltp/list
 * Commits should be signed: Signed-off-by: Your Name <me@example.org>, see
 https://www.kernel.org/doc/html/latest/process/submitting-patches.html#sign-your-work-the-developer-s-certificate-of-origin
 
+* Also other git tags might be relevant, see
+https://www.kernel.org/doc/html/latest/process/submitting-patches.html#using-reported-by-tested-by-reviewed-by-suggested-by-and-fixes
+
 * Commit message should be meaningful, following common style
 https://www.kernel.org/doc/html/latest/process/submitting-patches.html#split-changes
 https://www.kernel.org/doc/html/latest/process/submitting-patches.html#describe-your-changes
