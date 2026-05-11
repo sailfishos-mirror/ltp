@@ -19,6 +19,7 @@ author = 'Linux Test Project'
 release = '1.0'
 ltp_repo = 'https://github.com/linux-test-project/ltp'
 ltp_repo_base_url = f"{ltp_repo}/tree/master"
+cve_url = "https://www.cve.org/CVERecord?id="
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -293,7 +294,7 @@ def _generate_tags_table(tags):
         "linux-stable-git": "https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/commit/?id=",
         "glibc-git": "https://sourceware.org/git/?p=glibc.git;a=commit;h=",
         "musl-git": "https://git.musl-libc.org/cgit/musl/commit/src/linux/clone.c?id=",
-        "CVE": "https://www.cve.org/CVERecord?id=CVE-",
+        "CVE": cve_url + 'CVE-',
     }
 
     table = [
@@ -586,7 +587,7 @@ def generate_cve_catalog(_):
     # Generate single CVE catalog file
     total_cves = len(cve_data)
     text = [
-        '.. warning::',
+        '.. note::',
         '    The following CVE catalog has been generated from test',
         '    metadata and includes all CVE reproducers in LTP.',
         '',
@@ -614,8 +615,10 @@ def generate_cve_catalog(_):
         # Join multiple tests with commas
         tests_str = ', '.join(test_links)
 
+        cve_link = f'`{cve_id} <{cve_url}{cve_id}>`_'
+
         text.extend([
-            f'   * - {cve_id}',
+            f'   * - {cve_link}',
             f'     - {tests_str}',
         ])
 
