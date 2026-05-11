@@ -453,7 +453,9 @@ def generate_test_catalog(_):
     text = [
         '.. warning::',
         '    The following catalog has been generated using LTP metadata',
-        '    which is including only tests using the new :ref:`LTP C API`.',
+        '    which is including only tests using ',
+        '    :doc:`../developers/api_c_tests` and ',
+        '    :doc:`../developers/api_shell_tests`.',
         ''
     ]
 
