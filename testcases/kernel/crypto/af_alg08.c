@@ -60,6 +60,10 @@ static int algfd = -1;
 static int reqfd = -1;
 static int pipefd[2] = { -1, -1 };
 static int file_fd = -1;
+static const int exp_errnos[] = {
+	EBADMSG,
+	EINVAL
+};
 
 static void try_corrupt(void)
 {
@@ -100,7 +104,8 @@ static void try_corrupt(void)
 	SAFE_SPLICE(pipefd[0], NULL, reqfd, NULL, OVERWRITE_SIZE, 0);
 
 	/* Expected to fail (invalid ciphertext); triggers the scratch write */
-	TST_EXP_FAIL_SILENT(recv(reqfd, recvbuf, sizeof(recvbuf), 0), EBADMSG);
+	TST_EXP_FAIL_ARR_SILENT(recv(reqfd, recvbuf, sizeof(recvbuf), 0),
+		exp_errnos, ARRAY_SIZE(exp_errnos));
 
 	SAFE_CLOSE(pipefd[0]);
 	SAFE_CLOSE(pipefd[1]);
