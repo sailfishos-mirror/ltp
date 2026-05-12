@@ -676,6 +676,36 @@ const char *tst_errno_names(char *buf, const int *exp_errs, int exp_errs_cnt);
 	} while (0)
 
 /**
+ * TST_EXP_FAIL_ARR_SILENT() - Test syscall to fail with expected errnos, silent variant.
+ *
+ * @SCALL: Tested syscall.
+ * @EXP_ERRS: Array of expected errnos.
+ * @EXP_ERRS_CNT: Lenght of EXP_ERRS.
+ * @...: A printf-like parameters.
+ *
+ * Unlike TST_EXP_FAIL_ARR() does not print :c:enum:`TPASS <tst_res_flags>` on
+ * success, only prints :c:enum:`TFAIL <tst_res_flags>` on failure.
+ */
+#define TST_EXP_FAIL_ARR_SILENT(SCALL, EXP_ERRS, EXP_ERRS_CNT, ...)            \
+	TST_EXP_FAIL_SILENT_(TST_RET == 0, SCALL, #SCALL,                      \
+		EXP_ERRS, EXP_ERRS_CNT, ##__VA_ARGS__)
+
+/**
+ * TST_EXP_FAIL2_ARR_SILENT() - Test syscall to fail with expected errnos, silent variant.
+ *
+ * @SCALL: Tested syscall.
+ * @EXP_ERRS: Array of expected errnos.
+ * @EXP_ERRS_CNT: Lenght of EXP_ERRS.
+ * @...: A printf-like parameters.
+ *
+ * Unlike TST_EXP_FAIL2_ARR() does not print :c:enum:`TPASS <tst_res_flags>` on
+ * success, only prints :c:enum:`TFAIL <tst_res_flags>` on failure.
+ */
+#define TST_EXP_FAIL2_ARR_SILENT(SCALL, EXP_ERRS, EXP_ERRS_CNT, ...)           \
+	TST_EXP_FAIL_SILENT_(TST_RET >= 0, SCALL, #SCALL,                     \
+		EXP_ERRS, EXP_ERRS_CNT, ##__VA_ARGS__)
+
+/**
  * TST_EXP_EXPR() - Check for expected expression.
  *
  * @EXPR: Expression to be tested.
