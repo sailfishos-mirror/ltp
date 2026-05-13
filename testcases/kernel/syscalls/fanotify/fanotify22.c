@@ -144,27 +144,27 @@ static int check_error_event_info_fid(struct fanotify_event_info_fid *fid,
 	struct file_handle *fh = (struct file_handle *) &fid->handle;
 
 	if (memcmp(&fid->fsid, &ex->fid->fsid, sizeof(fid->fsid))) {
-		tst_res(TFAIL, "%s: Received bad FSID type (%x...!=%x...)",
-			ex->name, FSID_VAL_MEMBER(fid->fsid, 0),
+		tst_res(TFAIL, "Received bad FSID type (%x...!=%x...)",
+			FSID_VAL_MEMBER(fid->fsid, 0),
 			ex->fid->fsid.val[0]);
 
 		return 1;
 	}
 	if (fh->handle_type != ex->fid->handle.handle_type) {
-		tst_res(TFAIL, "%s: Received bad file_handle type (%d!=%d)",
-			ex->name, fh->handle_type, ex->fid->handle.handle_type);
+		tst_res(TFAIL, "Received bad file_handle type (%d!=%d)",
+			fh->handle_type, ex->fid->handle.handle_type);
 		return 1;
 	}
 
 	if (fh->handle_bytes != ex->fid->handle.handle_bytes) {
-		tst_res(TFAIL, "%s: Received bad file_handle len (%d!=%d)",
-			ex->name, fh->handle_bytes, ex->fid->handle.handle_bytes);
+		tst_res(TFAIL, "Received bad file_handle len (%d!=%d)",
+			fh->handle_bytes, ex->fid->handle.handle_bytes);
 		return 1;
 	}
 
 	if (memcmp(fh->f_handle, ex->fid->handle.f_handle, fh->handle_bytes)) {
-		tst_res(TFAIL, "%s: Received wrong handle. "
-			"Expected (%x...) got (%x...) ", ex->name,
+		tst_res(TFAIL, "Received wrong handle. "
+			"Expected (%x...) got (%x...) ",
 			*(int *)ex->fid->handle.f_handle, *(int *)fh->f_handle);
 		return 1;
 	}
@@ -177,14 +177,15 @@ static int check_error_event_info_error(struct fanotify_event_info_error *info_e
 	int fail = 0;
 
 	if (info_error->error_count != ex->error_count) {
-		tst_res(TFAIL, "%s: Unexpected error_count (%d!=%d)",
-			ex->name, info_error->error_count, ex->error_count);
+		tst_res(TFAIL, "Unexpected error_count (%d!=%d)",
+			info_error->error_count, ex->error_count);
 		fail++;
 	}
 
-	if (info_error->error != ex->error) {
-		tst_res(TFAIL, "%s: Unexpected error code value (%d!=%d)",
-			ex->name, info_error->error, ex->error);
+	if (info_error->error != ex->error &&
+	    (ex->error2 == 0 || info_error->error != ex->error2)) {
+		tst_res(TFAIL, "Unexpected error code value (%d!=%d)",
+			info_error->error, ex->error);
 		fail++;
 	}
 
